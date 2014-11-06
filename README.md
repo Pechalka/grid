@@ -4,7 +4,7 @@
 
 [reflux](https://github.com/spoike/refluxjs) 
 
-[drag-and-drop](http://learn.javascript.ru/drag-and-drop-objects) 
+[drag-and-drop](http://learn.javascript.ru/drag-and-drop) 
 
 
 ##how to run:##
