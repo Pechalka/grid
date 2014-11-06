@@ -1,0 +1,51 @@
+
+.page {
+	padding-top: 50px;
+}
+
+.page .col-xs-1,
+.page .col-xs-2,
+.page .col-xs-3,
+.page .col-xs-4,
+.page .col-xs-5,
+.page .col-xs-6,
+.page .col-xs-7,
+.page .col-xs-8,
+.page .col-xs-9,
+.page .col-xs-10,
+.page .col-xs-11,
+.page .col-xs-12 {
+	min-height: 200px;	
+	border-left: 2px solid #ccc;
+}
+.new-row .col-xs-1,
+.new-row .col-xs-2,
+.new-row .col-xs-3,
+.new-row .col-xs-4,
+.new-row .col-xs-5,
+.new-row .col-xs-6,
+.new-row .col-xs-7,
+.new-row .col-xs-8,
+.new-row .col-xs-9,
+.new-row .col-xs-10,
+.new-row .col-xs-11,
+.new-row .col-xs-12 {
+	min-height: 100px;
+	border: 2px solid #ccc; 
+	vertical-align: middle;
+	display: table-cell;
+}
+
+.component {
+	height: 80px;
+	width: 80px;
+	border: 1px solid #ccc;
+	text-align: center;
+	background: #fff;
+	line-height: 80px;
+	cursor: pointer;
+}
+
+.hover {
+	border: 1px solid red;
+}
