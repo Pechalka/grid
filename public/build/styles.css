@@ -38,6 +38,7 @@
 	border: 2px solid #ccc; 
 	vertical-align: middle;
 	display: table-cell;
+	position: relative;
 }
 
 .component {
@@ -52,4 +53,27 @@
 
 .hover {
 	border: 1px solid red;
+}
+
+
+.row {
+	position: relative;
+}
+.delemitor {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 100;
+	background-color: black;
+	width: 4px;
+	height: 100%;
+	cursor:e-resize;
+}
+
+.row.ruler {
+	border-top: 2px solid #ccc;
+}
+.row.ruler .col-xs-1{
+	border-left: 2px solid #ccc;
+	min-height: 20px;
 }

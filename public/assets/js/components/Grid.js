@@ -13,8 +13,8 @@ var actions = require('../actions');
 var stores = require('../stores');
 var getCoords = require('../utils').getCoords;
 var cx = React.addons.classSet;
-		
-
+var _ = require('lodash');
+var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nisi, ut officia exercitationem magni modi magnam dolor labore iusto explicabo optio consequatur ad quo voluptatibus dolores enim, eveniet voluptatum neque perferendis?';
 
 
  
@@ -87,18 +87,115 @@ var Component = React.createClass({
 
 var c = {};
 
-c['block1'] = React.createClass({
+c['Title'] = React.createClass({
 	render : function(){
-		return <div>block 1</div>
+		return <h1>Title</h1>
 	}
 })
 
 
-c['block2'] = React.createClass({
+c['Text'] = React.createClass({
 	render : function(){
-		return <div>block 2</div>
+		return <p>{lorem}</p>
 	}
 })
+
+var rowNode;
+var Delemitor = React.createClass({
+	getInitialState: function() {
+        return { 
+            shiftX : 25,
+            dragging : false
+        }
+    },
+    onmousedown : function(e){
+    	var target = e.target;
+
+    	if (target && target){
+    		var colCoords = getCoords(target.parentNode);
+	        var coords = getCoords(e.target);
+	        
+	        rowNode = target.parentNode.parentNode; //save current row
+	    
+	        this.setState({
+	            shiftX :  e.pageX - coords.left,
+	            dragging : true,
+
+	            startX : coords.left,
+	            parentLeft : colCoords.left
+	        })
+	        document.body.addEventListener('mousemove', this.moveAt);    		
+	        document.body.addEventListener('mouseup', this.onmouseup);    		
+		} 
+    },
+    onmouseup : function(e){
+    	var widths = [];
+        _.each(rowNode.childNodes, function(cellNode){
+        	widths.push(cellNode.offsetWidth);
+        })
+
+        var data = {
+        	cellIndex : this.props.index,
+        	row_id : this.props.row_id,
+        	newLeft : this.state.left,
+        	widths : widths
+        }
+        if (this.state.left){
+        	actions.recalculateCells(data);
+		}
+
+    	this.setState({ 
+    	 	left : 0,
+    	 	dragging : false 
+    	})
+
+        document.body.removeEventListener('mousemove', this.moveAt);
+        document.body.removeEventListener('mouseup', this.onmouseup);
+    },
+    moveAt : function(e){
+    	var newLeft = e.pageX - this.state.shiftX - this.state.parentLeft ;
+
+        this.setState({
+            left : newLeft + 'px'
+        })
+
+    },
+    doubleClick : function(){
+    	var widths = [];
+        _.each(rowNode.childNodes, function(cellNode){
+        	widths.push(cellNode.offsetWidth);
+        })
+
+        var data = {
+        	cellIndex : this.props.index,
+        	row_id : this.props.row_id,
+        	col_id : this.props.col_id,
+        	widths : widths
+        }
+
+    	actions.removeCell(data);
+
+    	return false;
+    },
+    none : function(e){ return false; },
+    render : function(){
+    	var style = {
+	       // position : this.state.dragging ? 'absolute' : 'static',
+	        zIndex : 100,
+	        left : this.state.left,
+	        top : 0
+	    }
+    	return <div className="delemitor"
+    		style={style}
+    		onDoubleClick={this.doubleClick }
+    		onDragStart={this.none}
+            onMouseDown={this.onmousedown} >
+			{this.props.type}
+		</div>
+    }
+
+});
+
 
 var Page = React.createClass({
 	mixins : [
@@ -114,13 +211,16 @@ var Page = React.createClass({
 	render: function() {
 		var selectedElementId = this.state.selected;
 		var rows = this.state.rows.map(function(row){
-			var cols = row.content.map(function(col){
+			var row_id = row.id;
+			var cols = row.content.map(function(col, i){
 				var cellClasses = cx({ 'hover' : selectedElementId == col.id  });
 				var components = col.content.map(function(component){
 					return c[component.componentClass](component.props) 
 				}) 
 
-				return <Col className={cellClasses} id={col.id} xs={col.props.xs}>{components}</Col>
+				return <Col className={cellClasses} id={col.id} xs={col.props.xs}>
+					<Delemitor index={i} row_id={row_id} col_id={col.id} />{components}
+				</Col>
 			})
 			return <Row>
 				{cols}	
@@ -132,6 +232,20 @@ var Page = React.createClass({
 		})
 
 		return <Grid  fluid={true} className='page text-center'>
+				<Row className="ruler">
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+					<Col xs={1}></Col>
+				</Row>
 			{rows}
 			<Row className={addClassName} >
 				<Col id={'add-row'} xs={12}>new row</Col>	
@@ -148,8 +262,8 @@ var App = React.createClass({
 				<Row>
 					<Col xs={2}>
 						<h4>Blocks</h4>
-						<Component type="block1"/>
-						<Component type="block2"/>	
+						<Component type="Title"/>
+						<Component type="Text"/>	
 					</Col>
 					<Col xs={10}>
 						<Page/>
