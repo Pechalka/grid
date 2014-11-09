@@ -11,7 +11,8 @@ var actions = Reflux.createActions([
     "drop",
     "recalculateCells",
     "removeCell",
-    "removeComponent"
+    "removeComponent",
+    "dropComponent"
 ]);
 
 actions.removeComponent.listen(function(data){
@@ -23,6 +24,53 @@ actions.removeComponent.listen(function(data){
 	col.content = _.reject(col.content, { id : data.id })
 
 	stores.rows.update(row);
+})
+
+var findComponentById = function(id){
+	var rows = stores.rows.get();
+
+	return null;
+}
+
+actions.dropComponent.listen(function(data){
+	var id = stores.selectedElementId.get();
+
+	//remove component from old position
+	var rows = stores.rows.get();
+	var row = _.find(rows, { id : data.row_id });
+	var col = _.find(row.content, { id : data.col_id })
+	var component = _.find(col.content, { id : data.id })//get component
+	col.content = _.reject(col.content, { id : data.id })
+	stores.rows.update(row);
+
+
+
+
+	//inser component in new position
+	var row_index = -1;
+	var col_index = -1;
+	var component_index = -1; 
+
+	_.each(rows, function(row, i){
+		_.each(row.content, function(col, j){
+			_.each(col.content, function(component, k){
+				if (component.id === id){
+					row_index = i;
+					col_index = j;
+					component_index = k;
+				}
+			})
+		})
+	})	
+	if (component_index !== -1){
+		var components = rows[row_index].content[col_index].content;
+
+		components.splice(component_index, 0, component);
+
+		stores.rows.update(rows[row_index]);	
+	}
+	
+	stores.selectedElementId.set(null)
 })
 
 actions.removeCell.listen(function(data){

@@ -30,7 +30,11 @@
 .page .col-xs-12 {
 	min-height: 200px;	
 	border-left: 2px solid #ccc;
+	padding-top: 20px;
+	padding-bottom: 20px;
 }
+
+
 .new-row .col-xs-1,
 .new-row .col-xs-2,
 .new-row .col-xs-3,
@@ -60,13 +64,24 @@
 	cursor: pointer;
 }
 
-.hover {
+.col-xs-1.hover,
+.col-xs-2.hover,
+.col-xs-3.hover,
+.col-xs-4.hover,
+.col-xs-5.hover,
+.col-xs-6.hover,
+.col-xs-7.hover,
+.col-xs-8.hover,
+.col-xs-9.hover,
+.col-xs-10.hover,
+.col-xs-11.hover,
+.col-xs-12.hover {
 	border: 1px solid red;
 }
 
 
-.row {
-	position: relative;
+.page .row {
+	border-top: 2px solid #ccc;
 }
 .delemitor {
 	position: absolute;
@@ -89,9 +104,29 @@
 
 .component {
 	cursor: pointer;
+	padding: 1px;
+}
+
+.component.hover {
+	border-top: 1px solid red;
 }
 
 .component:hover {
 	opacity: .9;
 	border: 1px dashed #000;
-};
+	padding: 0;
+}
+
+#avatar {
+	position: absolute;
+	width: 200px;
+	height: 200px;
+	top: 20px;
+	left: 20px;
+	z-index: 200;
+
+	opacity: .9;
+	border: 1px dashed #000;
+	cursor: pointer;
+	background-color: #fff;
+}

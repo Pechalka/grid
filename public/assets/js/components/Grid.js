@@ -18,7 +18,7 @@ var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nisi, ut 
 
 
  
-var Component = React.createClass({
+var ComponentIcon = React.createClass({
     getInitialState: function() {
         return { 
             shiftX : 25,
@@ -85,6 +85,98 @@ var Component = React.createClass({
     }
 })
 
+var avatar = document.createElement("div");
+avatar.id = "avatar";
+
+var Block = React.createClass({
+    getInitialState: function() {
+        return { 
+            shiftX : 25,
+            shiftY : 25,
+            dragging : false
+        }
+    },
+    onmousedown : function(e){
+    	console.log(e.target);
+
+        var coords = getCoords(e.target);
+
+        this.setState({
+            shiftX : e.pageX - coords.left,
+            shiftY : e.pageY - coords.top,
+            dragging : true,
+
+            startX : coords.left,
+            startY : coords.top
+        })
+        document.body.addEventListener('mousemove', this.moveAt);
+        document.body.addEventListener('mouseup', this.onmouseup); 
+        avatar.style.left = coords.left + 'px';
+        avatar.style.top = coords.top + 'px';
+        avatar.style.width = e.target.offsetWidth + 'px';
+        avatar.style.height = e.target.offsetHeight + 'px';
+        avatar.innerHTML =  'block';
+
+        document.body.appendChild(avatar)
+    },
+    onmouseup : function(e){
+    	this.setState({ 
+    		left : this.state.startX,
+    		top : this.state.startY,
+    		dragging : false 
+    	})
+    	document.body.removeChild(avatar);
+
+        document.body.removeEventListener('mousemove', this.moveAt);
+        document.body.removeEventListener('mouseup', this.onmouseup);
+        actions.dropComponent(this.props);
+    },
+    moveAt : function(e){
+
+  
+   //      this.setState({
+   //          left : e.pageX - this.state.shiftX + 'px',
+   //          top : e.pageY - this.state.shiftY +'px'
+   //      })
+
+
+	 	var x = e.pageX - this.state.shiftX ;
+	 	var y = e.pageY - this.state.shiftY;
+		
+		//move avatar
+	  	avatar.style.left = x + 'px';
+        avatar.style.top = y +'px';
+	 	
+	 	var el = document.elementFromPoint(x - 1, y - 1);
+
+	   window.console.log(el);
+
+	   	if (!el) return;
+
+	   actions.hoverElement(el.id);
+
+    },
+    none : function(e){ return false; },
+    render : function(){
+
+    	var style = {
+	        position : this.state.dragging ? 'absolute' : 'static',
+	        zIndex : 100,
+	        left : this.state.left,
+	        top : this.state.top
+	        , display : this.state.dragging ? 'none' : 'block'// hide component, move block avatar
+	    }
+    	return <div 
+    		style={style}
+    		onDragStart={this.none}
+            onMouseUp={this.onmouseup}
+            onMouseDown={this.onmousedown} 
+            className={this.props.className}>
+			{this.props.children}
+		</div>
+    }
+})
+
 var c = {};
 
 c['Title'] = React.createClass({
@@ -98,7 +190,7 @@ c['Title'] = React.createClass({
 		return false;
 	},
 	render : function(){
-		return <h1 className="component" onDoubleClick={this.doubleClick }>Title</h1>
+		return <h1 id={this.props.id} onDoubleClick={this.doubleClick }>Title</h1>
 	}
 })
 
@@ -114,7 +206,7 @@ c['Text'] = React.createClass({
 		return false;
 	},
 	render : function(){
-		return <p  className="component" onDoubleClick={this.doubleClick }>{lorem}</p>
+		return <p  id={this.props.id}  onDoubleClick={this.doubleClick }>{lorem}</p>
 	}
 })
 
@@ -233,11 +325,22 @@ var Page = React.createClass({
 			var cols = row.content.map(function(col, i){
 				var cellClasses = cx({ 'hover' : selectedElementId == col.id  });
 				var components = col.content.map(function(component){
+					var componentClasses = cx({ 
+						'hover' : selectedElementId == component.id ,
+						'component' : true 
+					});
+
 					var props = component.props;
 					props.id = component.id;
 					props.col_id = col.id;
 					props.row_id = row_id;
-					return c[component.componentClass](props) 
+					return <Block 
+							id={component.id} 
+							col_id={col.id}
+							row_id={row_id}
+							className={componentClasses}>
+							{c[component.componentClass](props)}
+					</Block> 
 				}) 
 
 				return <Col className={cellClasses} id={col.id} xs={col.props.xs}>
@@ -284,8 +387,8 @@ var App = React.createClass({
 				<Row>
 					<Col xs={2}>
 						<h4>Blocks</h4>
-						<Component type="Title"/>
-						<Component type="Text"/>	
+						<ComponentIcon type="Title"/>
+						<ComponentIcon type="Text"/>	
 					</Col>
 					<Col xs={10}>
 						<Page/>
