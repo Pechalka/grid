@@ -75,7 +75,8 @@
 .col-xs-9.hover,
 .col-xs-10.hover,
 .col-xs-11.hover,
-.col-xs-12.hover {
+.col-xs-12.hover,
+.new-row.hover {
 	border-bottom: 1px solid red;
 }
 
