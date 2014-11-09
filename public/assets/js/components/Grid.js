@@ -79,7 +79,7 @@ var Component = React.createClass({
     		onDragStart={this.none}
             onMouseUp={this.onmouseup}
             onMouseDown={this.onmousedown} 
-            className="component">
+            className="componentIcon">
 			{this.props.type}
 		</div>
     }
@@ -88,15 +88,33 @@ var Component = React.createClass({
 var c = {};
 
 c['Title'] = React.createClass({
+	doubleClick : function(){
+		var data = {
+			id : this.props.id,
+			col_id : this.props.col_id,
+			row_id : this.props.row_id
+		}
+		actions.removeComponent(data)
+		return false;
+	},
 	render : function(){
-		return <h1>Title</h1>
+		return <h1 className="component" onDoubleClick={this.doubleClick }>Title</h1>
 	}
 })
 
 
 c['Text'] = React.createClass({
+	doubleClick : function(){
+		var data = {
+			id : this.props.id,
+			col_id : this.props.col_id,
+			row_id : this.props.row_id
+		}
+		actions.removeComponent(data)
+		return false;
+	},
 	render : function(){
-		return <p>{lorem}</p>
+		return <p  className="component" onDoubleClick={this.doubleClick }>{lorem}</p>
 	}
 })
 
@@ -215,7 +233,11 @@ var Page = React.createClass({
 			var cols = row.content.map(function(col, i){
 				var cellClasses = cx({ 'hover' : selectedElementId == col.id  });
 				var components = col.content.map(function(component){
-					return c[component.componentClass](component.props) 
+					var props = component.props;
+					props.id = component.id;
+					props.col_id = col.id;
+					props.row_id = row_id;
+					return c[component.componentClass](props) 
 				}) 
 
 				return <Col className={cellClasses} id={col.id} xs={col.props.xs}>

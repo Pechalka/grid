@@ -5,6 +5,15 @@
 
 .page {
 	padding-top: 50px;
+/*
+	text selection http://stackoverflow.com/questions/826782/css-rule-to-disable-text-selection-highlighting
+*/
+	 -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .page .col-xs-1,
@@ -41,7 +50,7 @@
 	position: relative;
 }
 
-.component {
+.componentIcon {
 	height: 80px;
 	width: 80px;
 	border: 1px solid #ccc;
@@ -77,3 +86,12 @@
 	border-left: 2px solid #ccc;
 	min-height: 20px;
 }
+
+.component {
+	cursor: pointer;
+}
+
+.component:hover {
+	opacity: .9;
+	border: 1px dashed #000;
+};

@@ -10,20 +10,42 @@ var actions = Reflux.createActions([
     "hoverElement",
     "drop",
     "recalculateCells",
-    "removeCell"
+    "removeCell",
+    "removeComponent"
 ]);
 
+actions.removeComponent.listen(function(data){
+	if (!confirm("Remove component?")) return;
+
+	var rows = stores.rows.get();
+	var row = _.find(rows, { id : data.row_id });
+	var col = _.find(row.content, { id : data.col_id })
+	col.content = _.reject(col.content, { id : data.id })
+
+	stores.rows.update(row);
+})
 
 actions.removeCell.listen(function(data){
 	if (!confirm("Remove cell?")) return;
-	
+
 	var rows = stores.rows.get();
 	var row = _.find(rows, { id : data.row_id });
 	
 	var widths = data.widths; 
 	var delta = widths[data.cellIndex];
-	widths[data.cellIndex+1] += delta;
 
+	if (widths.length == 1){ //last cell in row
+		stores.rows.remove(row)
+		return;
+	}
+
+	if (data.cellIndex == widths.length - 1){//last col
+		widths[data.cellIndex-1] += delta;
+	} else {
+		widths[data.cellIndex+1] += delta;
+	
+	}
+	
 	widths.splice(data.cellIndex, 1);
 	
 	
@@ -87,7 +109,7 @@ actions.drop.listen(function(type){
 	if (!id) return;
 
 	if (id === 'add-row'){
-		stores.rows.add({ content : [{ props : { xs : 12 } , content : [{ componentClass : type }], id : guid() }] });		
+		stores.rows.add({ content : [{ props : { xs : 12 } , content : [{ componentClass : type , id : guid() , props : {} }], id : guid() }], id : guid() });		
 	} else {
 		var rows = stores.rows.get();
 		_.each(rows, function(row){
@@ -96,7 +118,7 @@ actions.drop.listen(function(type){
 			})
 
 			if (selectedCell){
-				selectedCell.content.push({ componentClass : type });
+				selectedCell.content.push({ componentClass : type , id : guid() , props : {}});
 				stores.rows.update(selectedCell)
 			}
 		})		
