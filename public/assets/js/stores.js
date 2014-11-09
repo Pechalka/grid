@@ -25,5 +25,8 @@ module.exports = {
 		id : utils.guid()
 	}]),
 
-	selectedElementId : ObjectStore(null)
+	selectedElementId : ObjectStore(null),
+
+	//todo: fix name
+	elementType : ObjectStore(null)// add new component or move exist
 }

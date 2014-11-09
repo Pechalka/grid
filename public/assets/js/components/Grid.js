@@ -37,6 +37,7 @@ var ComponentIcon = React.createClass({
             startX : coords.left,
             startY : coords.top
         })
+
         document.body.addEventListener('mousemove', this.moveAt);
         
        
@@ -118,6 +119,7 @@ var Block = React.createClass({
         avatar.innerHTML =  'block';
 
         document.body.appendChild(avatar)
+
     },
     onmouseup : function(e){
     	this.setState({ 
@@ -129,16 +131,9 @@ var Block = React.createClass({
 
         document.body.removeEventListener('mousemove', this.moveAt);
         document.body.removeEventListener('mouseup', this.onmouseup);
-        actions.dropComponent(this.props);
+        actions.drop(this.props);
     },
     moveAt : function(e){
-
-  
-   //      this.setState({
-   //          left : e.pageX - this.state.shiftX + 'px',
-   //          top : e.pageY - this.state.shiftY +'px'
-   //      })
-
 
 	 	var x = e.pageX - this.state.shiftX ;
 	 	var y = e.pageY - this.state.shiftY;
