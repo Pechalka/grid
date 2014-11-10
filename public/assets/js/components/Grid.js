@@ -54,7 +54,7 @@ var ComponentIcon = React.createClass({
     moveAt : function(e){
 
     	//TODO: fix magix 94
-    	
+
         var x = e.pageX - this.state.shiftX ;
 	 	var y = e.pageY - this.state.shiftY - 94 ;
 	 	
@@ -211,13 +211,30 @@ c['Title'] = React.createClass({
 		return <h1 id={this.props.id} >Title</h1>
 	}
 })
-
-
 c['Text'] = React.createClass({
 	render : function(){
-		return <p  id={this.props.id} >{lorem}</p>
+		return <p  id={this.props.id} >{lorem}</p>;
 	}
 })
+
+// c['Text'] = React.createClass({
+// 	getInitialState: function() {
+// 		return {
+// 			edit : false 
+// 		};
+// 	},
+// 	editMode : function(){
+// 		this.setState({ edit : true })
+// 	},
+// 	viewMode : function(){
+// 		this.setState({ edit : false })
+// 	},
+// 	render : function(){
+// 		return this.state.edit 
+// 			? <textarea onBlur={this.viewMode} value={lorem}></textarea> 
+// 			: <p onClick={this.editMode}  id={this.props.id} >{lorem}</p>;
+// 	}
+// })
 
 var rowNode;
 var Delemitor = React.createClass({
