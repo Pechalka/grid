@@ -56,9 +56,9 @@ gulp.task('dev', function () {
 
     gulp.watch('assets/js/**/*.js', [ 'scripts' ]);
     gulp.watch('assets/css/**/*.css', [ 'styles' ]);
-    gulp.watch('assets/img/**/*', [ 'images' ]);
+  //  gulp.watch('assets/img/**/*', [ 'images' ]);
 
 });
 
-gulp.task('build', ['styles', 'scripts', 'images' ]);
+gulp.task('build', ['styles', 'scripts' ]);
 

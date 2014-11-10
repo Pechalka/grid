@@ -1,6 +1,6 @@
 
 .page {
-	padding-top: 50px;
+	/*padding-top: 50px;*/
 /*
 	text selection http://stackoverflow.com/questions/826782/css-rule-to-disable-text-selection-highlighting
 */
@@ -29,7 +29,6 @@
 	padding-bottom: 20px;
 }
 
-
 .new-row .col-xs-1,
 .new-row .col-xs-2,
 .new-row .col-xs-3,
@@ -57,6 +56,8 @@
 	background: #fff;
 	line-height: 80px;
 	cursor: pointer;
+	margin: 5px;
+	background-color: #fff;
 }
 
 .col-xs-1.hover,
@@ -78,6 +79,8 @@
 
 .page .row {
 	border-top: 2px solid #ccc;
+	padding-top: 0;
+
 }
 .delemitor {
 	position: absolute;
@@ -101,8 +104,9 @@
 }
 
 .component {
-	cursor: pointer;
+	
 	padding: 1px;
+	position: relative;
 }
 
 .component.hover {
@@ -127,4 +131,20 @@
 	border: 1px dashed #000;
 	cursor: pointer;
 	background-color: #fff;
+}
+
+.component .handler{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 20px;
+	height: 20px;
+	display: none;
+	border-right: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
+	cursor: pointer;
+}
+
+.component:hover .handler {
+	display: block;
 }

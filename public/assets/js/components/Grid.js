@@ -35,7 +35,7 @@ var ComponentIcon = React.createClass({
             dragging : true,
 
             startX : coords.left,
-            startY : coords.top
+            startY : coords.top 
         })
 
         document.body.addEventListener('mousemove', this.moveAt);
@@ -44,7 +44,7 @@ var ComponentIcon = React.createClass({
     },
     onmouseup : function(e){
     	this.setState({ 
-    		left : this.state.startX,
+    		left : this.state.startX ,
     		top : this.state.startY,
     		dragging : false 
     	})
@@ -52,13 +52,18 @@ var ComponentIcon = React.createClass({
         actions.drop(this.props.type);
     },
     moveAt : function(e){
-        this.setState({
-            left : e.pageX - this.state.shiftX + 'px',
-            top : e.pageY - this.state.shiftY +'px'
+
+    	//TODO: fix magix 94
+    	
+        var x = e.pageX - this.state.shiftX ;
+	 	var y = e.pageY - this.state.shiftY - 94 ;
+	 	
+	 	this.setState({
+            left : x + 'px',
+            top : y  +'px'
         })
-	 	var x = e.pageX - this.state.shiftX - 1;
-	 	var y = e.pageY - this.state.shiftY-1;
-	 	var el = document.elementFromPoint(x, y);
+	 	
+	 	var el = document.elementFromPoint(x-1, y-1 + 94);
 
 	   //	window.console.log(el);
 
@@ -102,7 +107,7 @@ var Block = React.createClass({
 
         this.setState({
             shiftX : e.pageX - coords.left,
-            shiftY : e.pageY - coords.top,
+            shiftY : e.pageY - coords.top ,
             dragging : true,
 
             startX : coords.left,
@@ -115,9 +120,10 @@ var Block = React.createClass({
         document.body.addEventListener('mouseup', this.onmouseup); 
         avatar.style.left = coords.left + 'px';
         avatar.style.top = coords.top + 'px';
-        avatar.style.width = e.target.offsetWidth + 'px';
-        avatar.style.height = e.target.offsetHeight + 'px';
-        avatar.innerHTML =  'block';
+        //i => div => component
+        avatar.style.width = e.target.parentNode.parentNode.offsetWidth + 'px';
+        avatar.style.height = e.target.parentNode.parentNode.offsetHeight + 'px';
+        avatar.innerHTML =  '<i class="glyphicon glyphicon-arrow-down"></>block';
 
         document.body.appendChild(avatar)
 
@@ -184,18 +190,15 @@ var Block = React.createClass({
     render : function(){
 
     	var style = {
-	        position : this.state.dragging ? 'absolute' : 'static',
-	        zIndex : 100,
-	        left : this.state.left,
-	        top : this.state.top
-	        , display : this.state.dragging ? 'none' : 'block'// hide component, move block avatar
+	         display : this.state.dragging ? 'none' : 'block'// hide component, move block avatar
 	    }
     	return <div 
     		style={style}
-    		onDragStart={this.none}
-            onMouseUp={this.onmouseup}
-            onMouseDown={this.onmousedown} 
+    		
             className={this.props.className}>
+            <div onDragStart={this.none}
+            onMouseUp={this.onmouseup}
+            onMouseDown={this.onmousedown}  className="handler"><i className="glyphicon glyphicon-arrow-up"></i></div>
 			{this.props.children}
 		</div>
     }
@@ -204,33 +207,15 @@ var Block = React.createClass({
 var c = {};
 
 c['Title'] = React.createClass({
-	doubleClick : function(){
-		var data = {
-			id : this.props.id,
-			col_id : this.props.col_id,
-			row_id : this.props.row_id
-		}
-		actions.removeComponent(data)
-		return false;
-	},
 	render : function(){
-		return <h1 id={this.props.id} onDoubleClick={this.doubleClick }>Title</h1>
+		return <h1 id={this.props.id} >Title</h1>
 	}
 })
 
 
 c['Text'] = React.createClass({
-	doubleClick : function(){
-		var data = {
-			id : this.props.id,
-			col_id : this.props.col_id,
-			row_id : this.props.row_id
-		}
-		actions.removeComponent(data)
-		return false;
-	},
 	render : function(){
-		return <p  id={this.props.id}  onDoubleClick={this.doubleClick }>{lorem}</p>
+		return <p  id={this.props.id} >{lorem}</p>
 	}
 })
 
@@ -358,64 +343,104 @@ var Page = React.createClass({
 					props.id = component.id;
 					props.col_id = col.id;
 					props.row_id = row_id;
-					return <Block 
+					
+					return !this.props.preview ?
+						<Block 
 							id={component.id} 
 							col_id={col.id}
 							row_id={row_id}
 							className={componentClasses}>
 							{c[component.componentClass](props)}
-					</Block> 
-				}) 
+						</Block> : c[component.componentClass](props);
+
+				}.bind(this)) 
+
+				var delemitor = !this.props.preview 
+									? <Delemitor index={i} row_id={row_id} col_id={col.id} />
+									: null;
 
 				return <Col className={cellClasses} id={col.id} xs={col.props.xs}>
-					<Delemitor index={i} row_id={row_id} col_id={col.id} />{components}
+					{delemitor}{components}
 				</Col>
-			})
+			}.bind(this))
 			return <Row>
 				{cols}	
 			</Row>
-		})
+		}.bind(this))
 		var addClassName = cx({
 			'hover' : selectedElementId == 'add-row',
 			'new-row' : true
 		})
 
-		return <Grid  fluid={true} className='page text-center'>
-				<Row className="ruler">
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-					<Col xs={1}></Col>
-				</Row>
+		//preview
+		var addRow = !this.props.preview ?
+					<Row className={addClassName} >
+						<Col id={'add-row'} xs={12}>new row</Col>	
+					</Row> : null;
+		
+		var ruler = !this.props.preview ?					
+						<Row className="ruler">
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+							<Col xs={1}></Col>
+						</Row> : null;
+
+		return <Grid  fluid={true} className={ !this.props.preview ? 'page text-center' : null }>
+			{ruler}
 			{rows}
-			<Row className={addClassName} >
-				<Col id={'add-row'} xs={12}>new row</Col>	
-			</Row>
+			{addRow}
 		</Grid>
 	}
 
 });
 
 var App = React.createClass({
+	getInitialState: function() {
+		return {
+			preview : false 
+		};
+	},
+	preview : function(){
+		this.setState({ preview : true })
+		return false;
+	},
+	backToConstructor : function(){
+		this.setState({ preview : false })
+		return false;	
+	},
 	render: function() {
+		var btn = !this.state.preview 
+						? <a className="btn btn-success" onClick={this.preview}><i className="glyphicon glyphicon-fullscreen"></i> Preview</a>
+						: <a className="btn btn-default" onClick={this.backToConstructor}><i className="glyphicon glyphicon-cog"></i> Back to constructor</a>
+			
+		var componentsPanel = !this.state.preview
+						? 	<Col xs={2}>
+								<h4>Blocks</h4>
+								<ComponentIcon type="Title"/>
+								<ComponentIcon type="Text"/>	
+							</Col>
+						: null;
+
+
+
 		return (<div>
 			<Grid  fluid={true}>
+				<Row className="well">
+					<Col xs={12}>{btn}</Col>
+				</Row>								
 				<Row>
-					<Col xs={2}>
-						<h4>Blocks</h4>
-						<ComponentIcon type="Title"/>
-						<ComponentIcon type="Text"/>	
-					</Col>
-					<Col xs={10}>
-						<Page/>
+					{componentsPanel}
+					<Col xs={ !this.state.preview ? 10 : 12 }>
+						<Page preview={this.state.preview}/>
 					</Col>
 				</Row>
 			</Grid>
