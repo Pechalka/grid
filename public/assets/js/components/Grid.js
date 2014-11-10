@@ -98,8 +98,6 @@ var Block = React.createClass({
         }
     },
     onmousedown : function(e){
-    	console.log(e.target);
-
         var coords = getCoords(e.target);
 
         this.setState({
@@ -108,7 +106,10 @@ var Block = React.createClass({
             dragging : true,
 
             startX : coords.left,
-            startY : coords.top
+            startY : coords.top,
+
+            left : coords.left,
+            top : coords.top
         })
         document.body.addEventListener('mousemove', this.moveAt);
         document.body.addEventListener('mouseup', this.onmouseup); 
@@ -122,22 +123,50 @@ var Block = React.createClass({
 
     },
     onmouseup : function(e){
+    	document.body.removeChild(avatar);
+
+        document.body.removeEventListener('mousemove', this.moveAt);
+        document.body.removeEventListener('mouseup', this.onmouseup);
+
+    	console.log(this.state);
+
+		var cansel = (Math.abs(this.state.left - this.state.startX)<25 &&
+ 			       	 Math.abs(this.state.top - this.state.startY) < 25)
+        	
+        
+
     	this.setState({ 
     		left : this.state.startX,
     		top : this.state.startY,
     		dragging : false 
     	})
-    	document.body.removeChild(avatar);
 
-        document.body.removeEventListener('mousemove', this.moveAt);
-        document.body.removeEventListener('mouseup', this.onmouseup);
-        actions.drop(this.props);
+  //   	if (Math.abs(this.state.x - e.pageX) < 25 && Math.abs(this.state.y)<25){
+		// 	return;
+		// }
+
+
+		if (!cansel)
+        	actions.drop(this.props);
+        else
+        	stores.selectedElementId.set(null);
     },
     moveAt : function(e){
 
 	 	var x = e.pageX - this.state.shiftX ;
 	 	var y = e.pageY - this.state.shiftY;
 		
+		this.setState({
+			left : x,
+			top : y
+		})
+		// console.log(this.state);
+		// console.log(e);
+
+		// if (Math.abs(this.state.x - e.pageX) < 25 && Math.abs(this.state.y)<25){
+		// 	return;
+		// }
+
 		//move avatar
 	  	avatar.style.left = x + 'px';
         avatar.style.top = y +'px';
