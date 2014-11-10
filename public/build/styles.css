@@ -152,3 +152,14 @@
 .component:hover .handler {
 	display: block;
 }
+
+.component .btn-group{
+	display: none;
+}
+
+.component:hover .btn-group {
+	display: inline-block;
+	position: absolute;
+	top:  0 ;
+	left: 40%;
+}

@@ -187,6 +187,16 @@ var Block = React.createClass({
 
     },
     none : function(e){ return false; },
+    align : function(value){
+    	var data = {
+        	row_id : this.props.row_id,
+        	col_id : this.props.col_id,
+        	id : this.props.id,
+        	style : { 'text-align' : value }
+        }
+    	actions.updateComponent(data);
+    	return false;
+    },
     render : function(){
 
     	var style = {
@@ -198,7 +208,14 @@ var Block = React.createClass({
             className={this.props.className}>
             <div onDragStart={this.none}
             onMouseUp={this.onmouseup}
-            onMouseDown={this.onmousedown}  className="handler"><i className="glyphicon glyphicon-arrow-up"></i></div>
+            onMouseDown={this.onmousedown}  className="handler"><i className="glyphicon glyphicon-arrow-up"></i>
+            </div>
+			<div className="btn-group">
+			    <button onClick={this.align.bind(this, "left")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-align-left"></span></button>
+			    <button onClick={this.align.bind(this, "center")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-align-center"></span></button>
+			    <button onClick={this.align.bind(this, "right")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-align-right"></span></button>
+			    <button onClick={this.align.bind(this, "justify")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-align-justify"></span></button>
+			</div>
 			{this.props.children}
 		</div>
     }
@@ -208,12 +225,12 @@ var c = {};
 
 c['Title'] = React.createClass({
 	render : function(){
-		return <h1 id={this.props.id} >Title</h1>
+		return this.transferPropsTo(<h1 id={this.props.id} >Title</h1>)
 	}
 })
 c['Text'] = React.createClass({
 	render : function(){
-		return <p  id={this.props.id} >{lorem}</p>;
+		return this.transferPropsTo(<p  id={this.props.id} >{lorem}</p>);
 	}
 })
 
@@ -461,6 +478,7 @@ var App = React.createClass({
 					</Col>
 				</Row>
 			</Grid>
+
 		</div>);
 	}
 

@@ -12,7 +12,8 @@ var actions = Reflux.createActions([
     "recalculateCells",
     "removeCell",
     "removeComponent",
-    "dropComponent"
+    "dropComponent",
+    "updateComponent"
 ]);
 
 actions.removeComponent.listen(function(data){
@@ -24,6 +25,16 @@ actions.removeComponent.listen(function(data){
 	col.content = _.reject(col.content, { id : data.id })
 
 	stores.rows.update(row);
+})
+
+actions.updateComponent.listen(function(data){
+	var rows = stores.rows.get();
+	var row = _.find(rows, { id : data.row_id });
+	var col = _.find(row.content, { id : data.col_id })
+	var component = _.find(col.content, { id : data.id })
+	component.props.style = data.style;
+
+	stores.rows.update(row);	
 })
 
 var findComponentById = function(id){
