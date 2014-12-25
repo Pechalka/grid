@@ -9,12 +9,27 @@ var _ = require('lodash');
 var actions = Reflux.createActions([
     "hoverElement",
     "drop",
+    "drag",
+
     "recalculateCells",
     "removeCell",
     "removeComponent",
     "dropComponent",
-    "updateComponent"
+    "updateComponent",
+
+    "selectComponent"
 ]);
+
+actions.drag.listen(function(){
+	stores.drag.set(true)
+})
+
+actions.selectComponent.listen(function(id){
+	stores.selectedElementId.set(id);
+	// window.setTimeout(function(){
+	// 	stores.selectedElementId.set(null);
+	// }, 2000)
+})
 
 actions.removeComponent.listen(function(data){
 	if (!confirm("Remove component?")) return;
@@ -32,8 +47,47 @@ actions.updateComponent.listen(function(data){
 	var row = _.find(rows, { id : data.row_id });
 	var col = _.find(row.content, { id : data.col_id })
 	var component = _.find(col.content, { id : data.id })
-	component.props.style = data.style;
 
+	if (data.align)
+		component.props.align = data.align;
+
+	if (data.effect)
+		component.props.effect = data.effect;
+	
+	if (data.style){
+		if (component.componentClass == "Image"){
+			var align = data.style['text-align'];
+			if (align == "left"){
+				component.props.style = {
+					float : 'left',
+					'z-index' : 2000
+				}
+			} else if (align == "right") {
+				component.props.style = {
+					float : 'right',
+					'z-index' : 2000
+				}
+			} else if (align == "center"){
+				component.props.style = {
+					float : '',
+					margin : '0 auto'
+				}
+			} if (align == "justify"){
+				component.props.style = {
+					float : '',
+					width : '100%'
+				}
+				
+			}
+		} else {
+			component.props.style = data.style;
+		}
+	} else {
+		component.props.level = data.level;
+		component.props.text = data.text;
+
+	}
+	
 	stores.rows.update(row);	
 })
 
@@ -46,7 +100,7 @@ var findComponentById = function(id){
 actions.drop.listen(function(type){
 
 	//TODO: refactoring!!!!
-	var id = stores.selectedElementId.get();
+	var id = stores.dragHoverElementId.get();
 	
 	if (!type.id){ //drop new component
 		
@@ -129,7 +183,8 @@ actions.drop.listen(function(type){
 		}
 	}
 
-	stores.selectedElementId.set(null);
+	stores.drag.set(false)
+	stores.dragHoverElementId.set(null);
 })
 
 
@@ -168,7 +223,7 @@ actions.removeCell.listen(function(data){
 })
 
 actions.hoverElement.listen(function(id){
-	stores.selectedElementId.set(id);
+	stores.dragHoverElementId.set(id);
 })
 
 var converToXs = function(widths){

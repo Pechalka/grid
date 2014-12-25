@@ -107,13 +107,17 @@
 	
 	padding: 1px;
 	position: relative;
+	background: #fff;
 }
-
+.component.selected {
+	z-index: 9999;
+}
 .component.hover {
 	border-top: 1px solid red;
 }
 
-.component:hover {
+.component:hover,
+.component.selected {
 	opacity: .9;
 	border: 1px dashed #000;
 	padding: 0;
@@ -136,16 +140,37 @@
 .component .handler{
 	position: absolute;
 	top: 0;
-	left: 0;
+	
 	width: 20px;
 	height: 20px;
 	display: none;
 	border-right: 1px solid #ccc;
 	border-bottom: 1px solid #ccc;
 	cursor: pointer;
+	background: #fff;
+	z-index: 9999;
 }
 
-.component:hover .handler {
+.toolbar {
+	z-index: 9999;
+}
+
+.component:hover .toolbar.toolbar2 {
+	left: 0;
+	top: 20px;
+}
+
+.component .handler.right{
+	right: 0;
+}
+
+.component .handler.left{
+	right: 0;
+	left: 0;
+}
+
+.component:hover .handler,
+.component.selected .handler {
 	display: block;
 }
 
@@ -153,9 +178,13 @@
 	display: none;
 }
 
-.component:hover .btn-group {
+.component:hover .btn-group,
+.component.selected .btn-group {
 	display: inline-block;
 	position: absolute;
 	top:  0 ;
 	left: 40%;
+}
+#app h1 {
+	line-height: 1.2;
 }
