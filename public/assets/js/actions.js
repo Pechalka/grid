@@ -24,11 +24,14 @@ actions.drag.listen(function(){
 	stores.drag.set(true)
 })
 
+
 actions.selectComponent.listen(function(id){
 	stores.selectedElementId.set(id);
+	// selectedElementId = id;
 	// window.setTimeout(function(){
+	// 	if (selectedElementId == stores.selectedElementId.get())
 	// 	stores.selectedElementId.set(null);
-	// }, 2000)
+	// }, 3000)
 })
 
 actions.removeComponent.listen(function(data){
@@ -98,6 +101,7 @@ var findComponentById = function(id){
 }
 
 actions.drop.listen(function(type){
+	stores.drag.set(false)
 
 	//TODO: refactoring!!!!
 	var id = stores.dragHoverElementId.get();
@@ -183,7 +187,7 @@ actions.drop.listen(function(type){
 		}
 	}
 
-	stores.drag.set(false)
+	
 	stores.dragHoverElementId.set(null);
 })
 

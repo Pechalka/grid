@@ -6,7 +6,14 @@ var React = require('react');
 var Bootstrap = require('react-bootstrap')
 	, Grid = Bootstrap.Grid
 	, Row = Bootstrap.Row
-	, Col = Bootstrap.Col;
+	, Col = Bootstrap.Col
+	, ButtonToolbar = Bootstrap.ButtonToolbar
+	, DropdownButton = Bootstrap.DropdownButton
+	, MenuItem = Bootstrap.MenuItem
+	, ButtonGroup = Bootstrap.ButtonGroup
+;
+
+
 
 var Reflux = require('reflux');
 var actions = require('../actions');
@@ -94,6 +101,21 @@ var ComponentIcon = React.createClass({
 var avatar = document.createElement("div");
 avatar.id = "avatar";
 
+
+function getSelectionText() {
+    var text = "";
+    if (window.getSelection) {
+        text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+        text = document.selection.createRange().text;
+    }
+    return text;
+}
+
+var dd = false,
+	w,
+	h
+;
 var Block = React.createClass({
     getInitialState: function() {
         return { 
@@ -103,6 +125,8 @@ var Block = React.createClass({
         }
     },
     onmousedown : function(e){
+    	document.body.style.cursor = 'url(../build/img/closedhand.cur) 7 5, move';
+
         var coords = getCoords(e.target);
 
         this.setState({
@@ -120,9 +144,13 @@ var Block = React.createClass({
         document.body.addEventListener('mouseup', this.onmouseup); 
         avatar.style.left = coords.left + 'px';
         avatar.style.top = coords.top + 'px';
+        avatar.style.zIndex = 99999;
+
+      //  console.log(e.target.parentNode);
+
         //i => div => component
-        avatar.style.width = e.target.parentNode.parentNode.offsetWidth + 'px';
-        avatar.style.height = e.target.parentNode.parentNode.offsetHeight + 'px';
+        avatar.style.width = w + 'px';
+        avatar.style.height = h + 'px';
         avatar.innerHTML =  '<i class="glyphicon glyphicon-arrow-down"></>block';
 
         document.body.appendChild(avatar)
@@ -130,7 +158,35 @@ var Block = React.createClass({
         actions.drag();
 
     },
+    onmousedown2 : function(e){
+    	actions.selectComponent(this.props.id);
+
+    
+    	var target = e.target;
+    	var pageX = e.pageX;
+    	var pageY = e.pageY;
+    	
+
+
+    	dd = true;
+    	w = target.parentNode.offsetWidth;
+    	h = target.parentNode.offsetHeight
+    	window.setTimeout(function(){
+    		var selectedText = getSelectionText();
+    		if (!!selectedText) dd = false;
+
+    		if (dd)
+    			this.onmousedown({ target : target, pageX : pageX,  pageY : pageY})
+    	}.bind(this), 500)
+    	
+    },
+    onMouseUp2 : function(){
+    	dd = false;
+    },
     onmouseup : function(e){
+    	dd = false;
+    	document.body.style.cursor = '';
+
     	document.body.removeChild(avatar);
 
         document.body.removeEventListener('mousemove', this.moveAt);
@@ -160,7 +216,7 @@ var Block = React.createClass({
         	stores.dragHoverElementId.set(null);
     },
     moveAt : function(e){
-
+		
 	 	var x = e.pageX - this.state.shiftX ;
 	 	var y = e.pageY - this.state.shiftY;
 		
@@ -226,9 +282,9 @@ var Block = React.createClass({
     	actions.removeComponent(this.props)
     	return false;
     },
-    blockClick : function(){
-    	actions.selectComponent(this.props.id);
-    },
+    // blockClick : function(){
+    // 	actions.selectComponent(this.props.id);
+    // },
     render : function(){
     	var style = {
 	         display : this.state.dragging ? 'none' : 'block',// hide component, move block avatar
@@ -263,36 +319,42 @@ var Block = React.createClass({
 		    })	
 	    }
 	    
+		var shape = this.props.componentClass === "Image" ? <DropdownButton bsSize="xsmall" title="shape">
+			          <MenuItem onSelect={this.effect.bind(this, "none")} eventKey="1" >none</MenuItem>
+			          <MenuItem  divider />
+			          <MenuItem onSelect={this.effect.bind(this, "circle")} eventKey="2" active="true" eventKey="2">circle</MenuItem>
+			          <MenuItem divider />
+			          <MenuItem onSelect={this.effect.bind(this, "rounded")}  eventKey="3">rounded</MenuItem>
+			          <MenuItem divider />
+			          <MenuItem onSelect={this.effect.bind(this, "thumbnail")}  eventKey="4">thumbnail</MenuItem>
+			        </DropdownButton> : null;
 
-	    var toolbar = <div className="btn-group toolbar">
-			    <button onClick={this.align.bind(this, "left")} type="button" className={calculateBtnClass(align, 'left')}><span className="glyphicon glyphicon-align-left"></span></button>
-			    <button onClick={this.align.bind(this, "center")} type="button" className={calculateBtnClass(align, 'center')}><span className="glyphicon glyphicon-align-center"></span></button>
-			    <button onClick={this.align.bind(this, "right")} type="button" className={calculateBtnClass(align, 'right')}><span className="glyphicon glyphicon-align-right"></span></button>
-			    <button onClick={this.align.bind(this, "justify")} type="button" className={calculateBtnClass(align, 'justify')}><span className="glyphicon glyphicon-align-justify"></span></button>
-				{size}
-			</div>
+	    var toolbar = <ButtonGroup >
+			        <div className="btn-group toolbar">
+					    <button onClick={this.align.bind(this, "left")} type="button" className={calculateBtnClass(align, 'left')}><span className="glyphicon glyphicon-align-left"></span></button>
+					    <button onClick={this.align.bind(this, "center")} type="button" className={calculateBtnClass(align, 'center')}><span className="glyphicon glyphicon-align-center"></span></button>
+					    <button onClick={this.align.bind(this, "right")} type="button" className={calculateBtnClass(align, 'right')}><span className="glyphicon glyphicon-align-right"></span></button>
+					    <button onClick={this.align.bind(this, "justify")} type="button" className={calculateBtnClass(align, 'justify')}><span className="glyphicon glyphicon-align-justify"></span></button>
+						{size}
+					</div>
+			        {shape}
+			     </ButtonGroup>
+			        
+	
 
-		var secondToolBar = this.props.componentClass === "Image" ? <div className="btn-group toolbar toolbar2">
-			    <button onClick={this.effect.bind(this, "none")} type="button" className={calculateBtnClass(effect, 'none')}>none</button>
-			    <button onClick={this.effect.bind(this, "circle")} type="button" className={calculateBtnClass(effect, 'circle')}>circle</button>
-			    <button onClick={this.effect.bind(this, "rounded")} type="button" className={calculateBtnClass(effect, 'rounded')}>rounded</button>
-			    <button onClick={this.effect.bind(this, "thumbnail")} type="button" className={calculateBtnClass(effect, 'thumbnail')}>thumbnail</button>
-				{size}
-			</div> : null;
-
+// <div onDragStart={this.none}
+//             onMouseUp={this.onmouseup}
+//             onMouseDown={this.onmousedown}  className="handler left"><i className="glyphicon glyphicon-arrow-up"></i>
+//             </div>
     	return <div 
     		style={style}
     		
-            className={this.props.css} onClick={this.blockClick}>
-            <div onDragStart={this.none}
-            onMouseUp={this.onmouseup}
-            onMouseDown={this.onmousedown}  className="handler left"><i className="glyphicon glyphicon-arrow-up"></i>
-            </div>
+            className={this.props.css} onClick={this.blockClick} onMouseDown={this.onmousedown2} onMouseUp={this.onMouseUp2}>
+            
             <div onClick={this.remove} className="handler right">
             	<i className="glyphicon glyphicon-remove"></i>
             </div>
 			{toolbar}
-			{secondToolBar}
 			{this.props.children}
 		</div>
     }
