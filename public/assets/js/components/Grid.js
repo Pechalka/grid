@@ -159,6 +159,8 @@ var Block = React.createClass({
 
     },
     onmousedown2 : function(e){
+    	if (e.button != 0) return;
+
     	actions.selectComponent(this.props.id);
 
     
@@ -377,6 +379,7 @@ c['Title'] = React.createClass({
 		};
 	},
 	emitChange : function(){
+		
 		var props = this.props;
 		props.text = this.getDOMNode().innerHTML;
 		actions.updateComponent(props);
@@ -389,6 +392,7 @@ c['Title'] = React.createClass({
 		return this.transferPropsTo(Title({ 
 			onBlur : this.emitChange, 
 			onInput : this.emitChange, 
+			onChange : this.emitChange,
 			contentEditable : !this.state.drag && !this.props.preview, 
 			id : this.props.id ,
 			onDragStart : this.none,
