@@ -296,12 +296,15 @@ var Block = React.createClass({
     	var style = {
 	         display : this.state.dragging ? 'none' : 'block',// hide component, move block avatar
 	    }
-	    
+	    var imageSpacer;//TODO: need can move spacer + privew
 	    if (this.props.componentClass === "Image" && (this.props.align == "left" || this.props.align == "right")){
 	    	style = {
 	    		float : this.props.align,
+	    		clear : this.props.align,
 	    		zIndex : 2000
 	    	}
+
+	    	imageSpacer = <span style={{ float : this.props.align, height : 50 }}></span>
 	    }
 
 	    var size = null;
@@ -347,13 +350,14 @@ var Block = React.createClass({
 			        {shape}
 			     </ButtonGroup>
 			        
-	
+		
+
 
 // <div onDragStart={this.none}
 //             onMouseUp={this.onmouseup}
 //             onMouseDown={this.onmousedown}  className="handler left"><i className="glyphicon glyphicon-arrow-up"></i>
 //             </div>
-    	return <div 
+    	return <div>{imageSpacer}<div 
     		style={style}
     		
             className={this.props.css} onClick={this.blockClick} onMouseDown={this.onmousedown2} onMouseUp={this.onMouseUp2}>
@@ -362,8 +366,9 @@ var Block = React.createClass({
             	<i className="glyphicon glyphicon-remove"></i>
             </div>
 			{toolbar}
+			{imageSpacer}
 			{this.props.children}
-		</div>
+		</div></div>
     }
 })
 
@@ -420,12 +425,14 @@ c['Image'] = React.createClass({
 		}
 		if (align == "left"){
 			style = {
-				float : 'left'
+				float : 'left',
+				clear : 'left'
 			}
 		}
 		if (align == "right"){
 			style = {
-				float : 'right'
+				float : 'right',
+				clear : 'right'
 			}
 		}
 		if (align == "justify"){
