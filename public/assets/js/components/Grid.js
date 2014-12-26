@@ -166,6 +166,8 @@ var Block = React.createClass({
     	var pageX = e.pageX;
     	var pageY = e.pageY;
     	
+    	console.log(e.target);
+
 
 
     	dd = true;
@@ -212,8 +214,11 @@ var Block = React.createClass({
 
 		if (!cansel)
         	actions.drop(this.props);
-        else
+        else{
+        	stores.drag.set(false)
         	stores.dragHoverElementId.set(null);
+        }
+        	
     },
     moveAt : function(e){
 		
@@ -384,8 +389,10 @@ c['Title'] = React.createClass({
 		return this.transferPropsTo(Title({ 
 			onBlur : this.emitChange, 
 			onInput : this.emitChange, 
-			contentEditable : !this.state.drag , 
+			contentEditable : !this.state.drag && !this.props.preview, 
 			id : this.props.id ,
+			onDragStart : this.none,
+			draggable : false,
 			style : {
 				'text-align' : align
 			}
@@ -450,10 +457,11 @@ c['Text'] = React.createClass({
 		var text = this.props.text || lorem;
 		
 
-		return this.transferPropsTo(<p onBlur={this.emitChange} 
-			onInput={this.emitChange}  contentEditable={!this.state.drag} id={this.props.id} >{text}</p>);
+		return this.transferPropsTo(<p draggable={false} onDragStart={none} onBlur={this.emitChange} 
+			onInput={this.emitChange}  contentEditable={!this.state.drag && !this.props.preview} id={this.props.id} >{text}</p>);
 	}
 })
+var none = function(e){ return false; }
 
 
 var rowNode;
@@ -533,7 +541,6 @@ var Delemitor = React.createClass({
 
     	return false;
     },
-    none : function(e){ return false; },
     render : function(){
     	var style = {
 	       // position : this.state.dragging ? 'absolute' : 'static',
@@ -569,6 +576,7 @@ var Page = React.createClass({
 	render: function() {
 		var dragHoverElementId = this.state.dragHoverElementId;
 		var selectedElementId = this.state.selectedElementId;
+		var preview = this.props.preview;
 
 		var rows = this.state.rows.map(function(row){
 			var row_id = row.id;
@@ -587,6 +595,7 @@ var Page = React.createClass({
 					props.row_id = row_id;
 					props.css = componentClasses;
 					props.componentClass = component.componentClass;
+					props.preview = preview;
 
 					var element = c[component.componentClass](props);
 					var blockWithElement = Block(props, element);
