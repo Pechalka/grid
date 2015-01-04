@@ -242,7 +242,8 @@ actions.recalculateCells.listen(function(data){
 
 	var widths = data.widths;
 	var currentCellWidth = widths[data.cellIndex];
-	var delta = parseInt(data.newLeft.split('px')[0]);
+	var delta = data.newLeft;
+	/// parseInt(data.newLeft.split('px')[0]);
 
 	if (data.cellIndex === 0){//new cell
 		widths[data.cellIndex] = currentCellWidth - delta;

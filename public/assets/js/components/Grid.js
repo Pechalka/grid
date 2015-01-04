@@ -20,82 +20,29 @@ var actions = require('../actions');
 var stores = require('../stores');
 var getCoords = require('../utils').getCoords;
 var cx = React.addons.classSet;
+var Draggable = require('../Draggable');
+
 var _ = require('lodash');
 var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nisi, ut officia exercitationem magni modi magnam dolor labore iusto explicabo optio consequatur ad quo voluptatibus dolores enim, eveniet voluptatum neque perferendis?';
 
 var r = React.DOM;
  
 var ComponentIcon = React.createClass({
-    getInitialState: function() {
-        return { 
-            shiftX : 25,
-            shiftY : 25,
-            dragging : false
-        }
-    },
-    onmousedown : function(e){
-        var coords = getCoords(e.target);
-        
-        this.setState({
-            shiftX : e.pageX - coords.left,
-            shiftY : e.pageY - coords.top,
-            dragging : true,
+  	dragEnd : function(){
+  		actions.drop(this.props.type);
+  	},
+  	drag : function(x, y){
+		var el = document.elementFromPoint(x-1, y-1 );
 
-            startX : coords.left,
-            startY : coords.top 
-        })
+	    if (!el) return;
 
-        document.body.addEventListener('mousemove', this.moveAt);
-        
-       
-    },
-    onmouseup : function(e){
-    	this.setState({ 
-    		left : this.state.startX ,
-    		top : this.state.startY,
-    		dragging : false 
-    	})
-        document.body.removeEventListener('mousemove', this.moveAt);
-        actions.drop(this.props.type);
-    },
-    moveAt : function(e){
-
-    	//TODO: fix magix 94
-
-        var x = e.pageX - this.state.shiftX ;
-	 	var y = e.pageY - this.state.shiftY - 94 ;
-	 	
-	 	this.setState({
-            left : x + 'px',
-            top : y  +'px'
-        })
-	 	
-	 	var el = document.elementFromPoint(x-1, y-1 + 94);
-
-	   //	window.console.log(el);
-
-	   	if (!el) return;
-
-	   actions.hoverElement(el.id);
-
-    },
-    none : function(e){ return false; },
-    render : function(){
-    	var style = {
-	        position : this.state.dragging ? 'absolute' : 'static',
-	        zIndex : 100,
-	        left : this.state.left,
-	        top : this.state.top
-	    }
-    	return <div 
-    		style={style}
-    		onDragStart={this.none}
-            onMouseUp={this.onmouseup}
-            onMouseDown={this.onmousedown} 
-            className="componentIcon">
-			{this.props.type}
-		</div>
-    }
+		actions.hoverElement(el.id);
+  	},
+  	render : function(){
+  		return <Draggable onEnd={this.dragEnd} onDrag={this.drag}>
+  			<div className="componentIcon">{this.props.type}</div>
+  		</Draggable>
+  	}
 })
 
 var avatar = document.createElement("div");
@@ -198,8 +145,7 @@ var Block = React.createClass({
 
     	console.log(this.state);
 
-		var cansel = (Math.abs(this.state.left - this.state.startX)<25 &&
- 			       	 Math.abs(this.state.top - this.state.startY) < 25)
+		
         	
         
 
@@ -209,11 +155,8 @@ var Block = React.createClass({
     		dragging : false 
     	})
 
-  //   	if (Math.abs(this.state.x - e.pageX) < 25 && Math.abs(this.state.y)<25){
-		// 	return;
-		// }
-
-
+		var cansel = (Math.abs(this.state.left - this.state.startX)<25 &&
+ 			       	 Math.abs(this.state.top - this.state.startY) < 25)
 		if (!cansel)
         	actions.drop(this.props);
         else{
@@ -231,12 +174,6 @@ var Block = React.createClass({
 			left : x,
 			top : y
 		})
-		// console.log(this.state);
-		// console.log(e);
-
-		// if (Math.abs(this.state.x - e.pageX) < 25 && Math.abs(this.state.y)<25){
-		// 	return;
-		// }
 
 		//move avatar
 	  	avatar.style.left = x + 'px';
@@ -289,14 +226,37 @@ var Block = React.createClass({
     	actions.removeComponent(this.props)
     	return false;
     },
-    // blockClick : function(){
-    // 	actions.selectComponent(this.props.id);
-    // },
+    renderAvatar : function(){
+    	var el = this.getDOMNode();
+    	var style = {
+    		width : el.offsetWidth,
+    		height : el.offsetHeight
+    	}
+
+    	return <div style={style} ><i className="glyphicon glyphicon-arrow-down"></i>block</div>;
+    },
+    dragEnd : function(e, left, top){
+  		//actions.drop(this.props.type);
+  		var cansel = (Math.abs(left - this.state.startX)<25 &&
+ 			       	 Math.abs(top - this.state.startY) < 25)
+		if (!cansel)
+        	actions.drop(this.props);
+        else{
+        	stores.drag.set(false)
+        	stores.dragHoverElementId.set(null);
+        }
+  	},
+  	drag : function(x, y){
+		var el = document.elementFromPoint(x-1, y-1 );
+
+	    if (!el) return;
+
+		//actions.hoverElement(el.id);
+  	},
     render : function(){
     	var style = {
 	         display : this.state.dragging ? 'none' : 'block',// hide component, move block avatar
 	    }
-	    var imageSpacer;//TODO: need can move spacer + privew
 	    if (this.props.componentClass === "Image" && (this.props.align == "left" || this.props.align == "right")){
 	    	style = {
 	    		float : this.props.align,
@@ -304,7 +264,6 @@ var Block = React.createClass({
 	    		zIndex : 2000
 	    	}
 
-	    	imageSpacer = <span style={{ float : this.props.align, height : 50 }}></span>
 	    }
 
 	    var size = null;
@@ -349,26 +308,28 @@ var Block = React.createClass({
 					</div>
 			        {shape}
 			     </ButtonGroup>
-			        
+			       
+		var removeBtn = <div onClick={this.remove} className="handler right">
+            	<i className="glyphicon glyphicon-remove"></i>
+            </div>
 		
 
 
-// <div onDragStart={this.none}
-//             onMouseUp={this.onmouseup}
-//             onMouseDown={this.onmousedown}  className="handler left"><i className="glyphicon glyphicon-arrow-up"></i>
-//             </div>
-    	return <div>{imageSpacer}<div 
-    		style={style}
-    		
-            className={this.props.css} onClick={this.blockClick} onMouseDown={this.onmousedown2} onMouseUp={this.onMouseUp2}>
-            
-            <div onClick={this.remove} className="handler right">
-            	<i className="glyphicon glyphicon-remove"></i>
-            </div>
-			{toolbar}
-			{imageSpacer}
+		// style={style}
+  //           className={this.props.css} 
+  //           onClick={this.blockClick} 
+  //           onMouseDown={this.onmousedown2} 
+  //           onMouseUp={this.onMouseUp2}
+
+    	return <Draggable avatar={this.renderAvatar}> 
+    		<div 
+	    		style={style} 	
+	    		className={this.props.css} 
+        	>
+			{toolbar} {removeBtn}
 			{this.props.children}
-		</div></div>
+		</div>
+		</Draggable>
     }
 })
 
@@ -450,6 +411,7 @@ c['Image'] = React.createClass({
 	}
 })
 
+
 c['Text'] = React.createClass({
 	mixins : [
 		Reflux.connect(stores.drag, "drag")
@@ -474,100 +436,54 @@ c['Text'] = React.createClass({
 })
 var none = function(e){ return false; }
 
+var getCelsWidth = function(rowNode){
+	var widths = [];
+    _.each(rowNode.childNodes, function(cellNode){
+    	widths.push(cellNode.offsetWidth);
+    })
+    return widths;
+}
 
 var rowNode;
 var Delemitor = React.createClass({
-	getInitialState: function() {
-        return { 
-            shiftX : 25,
-            dragging : false
-        }
-    },
     onmousedown : function(e){
     	var target = e.target;
 
     	if (target && target){
-    		var colCoords = getCoords(target.parentNode);
-	        var coords = getCoords(e.target);
-	        
-	        rowNode = target.parentNode.parentNode; //save current row
-	    
-	        this.setState({
-	            shiftX :  e.pageX - coords.left,
-	            dragging : true,
-
-	            startX : coords.left,
-	            parentLeft : colCoords.left
-	        })
-	        document.body.addEventListener('mousemove', this.moveAt);    		
-	        document.body.addEventListener('mouseup', this.onmouseup);    		
-		} 
+    	    rowNode = target.parentNode.parentNode; //save current row
+	    } 
     },
-    onmouseup : function(e){
-    	var widths = [];
-        _.each(rowNode.childNodes, function(cellNode){
-        	widths.push(cellNode.offsetWidth);
-        })
-
-        var data = {
-        	cellIndex : this.props.index,
-        	row_id : this.props.row_id,
-        	newLeft : this.state.left,
-        	widths : widths
-        }
-        if (this.state.left){
+    onmouseup : function(e, newLeft){
+    	if (newLeft){
+	        var data = {
+	        	cellIndex : this.props.index,
+	        	row_id : this.props.row_id,
+	        	newLeft : newLeft,
+	        	widths : getCelsWidth(rowNode)
+	        }
         	actions.recalculateCells(data);
 		}
-
-    	this.setState({ 
-    	 	left : 0,
-    	 	dragging : false 
-    	})
-
-        document.body.removeEventListener('mousemove', this.moveAt);
-        document.body.removeEventListener('mouseup', this.onmouseup);
-    },
-    moveAt : function(e){
-    	var newLeft = e.pageX - this.state.shiftX - this.state.parentLeft ;
-
-        this.setState({
-            left : newLeft + 'px'
-        })
-
-    },
+	},
     doubleClick : function(){
-    	var widths = [];
-        _.each(rowNode.childNodes, function(cellNode){
-        	widths.push(cellNode.offsetWidth);
-        })
-
         var data = {
         	cellIndex : this.props.index,
         	row_id : this.props.row_id,
         	col_id : this.props.col_id,
-        	widths : widths
+        	widths : getCelsWidth(rowNode)
         }
 
     	actions.removeCell(data);
 
     	return false;
     },
-    render : function(){
-    	var style = {
-	       // position : this.state.dragging ? 'absolute' : 'static',
-	        zIndex : 100,
-	        left : this.state.left,
-	        top : 0
-	    }
-    	return <div className="delemitor"
-    		style={style}
-    		onDoubleClick={this.doubleClick }
-    		onDragStart={this.none}
-            onMouseDown={this.onmousedown} >
-			{this.props.type}
-		</div>
-    }
-
+ 	render : function(){
+ 		return <Draggable axis="y" 
+	 		mode="relative" 
+	 		onEnd={this.onmouseup}
+			onStart={this.onmousedown}>
+ 			<div onDoubleClick={this.doubleClick} className="delemitor"></div>
+ 		</Draggable>
+ 	}
 });
 
 
@@ -683,7 +599,7 @@ var App = React.createClass({
 						: <a className="btn btn-default" onClick={this.backToConstructor}><i className="glyphicon glyphicon-cog"></i> Back to constructor</a>
 			
 		var componentsPanel = !this.state.preview
-						? 	<Col xs={2}>
+						? 	<Col xs={2} style={{ position : 'static'}}>
 								<h4>Blocks</h4>
 								<ComponentIcon type="Title"/>
 								<ComponentIcon type="Text"/>
