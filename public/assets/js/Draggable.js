@@ -9,6 +9,9 @@ var none = function(e){ return false; }
 var avatar = document.createElement("div");
 avatar.id = "avatar";
 
+var dragComponent = false;
+var dndStart = false;
+
 module.exports =  React.createClass({
 		getInitialState: function() {
 			return {
@@ -19,7 +22,8 @@ module.exports =  React.createClass({
 		},
 		getDefaultProps : function(){
 			return {
-				axis : 'both'		
+				axis : 'both',
+				delay : 500		
 			}
 		},
 		moveAt : function(e){
@@ -39,30 +43,69 @@ module.exports =  React.createClass({
 	        	avatar.style.top = y +'px';
         	}
 
+        	if (this.props.onDrag)
+				this.props.onDrag(e, x, y);
 		},
 		mouseup : function(e){
-			document.removeEventListener('mousemove', this.moveAt);
+			dragComponent = false;
+
 			document.removeEventListener('mouseup', this.mouseup);
-			removeClass('drag', document.body);
 			
-			
-			if (this.props.avatar){
-				React.unmountComponentAtNode(this.props.avatar(), avatar)
-				document.body.removeChild(avatar);
-	    	}
+			if (dndStart){
+				dndStart = false;
+				document.removeEventListener('mousemove', this.moveAt);
+				removeClass('drag', document.body);
+				
+				
+				if (this.props.avatar){
+					React.unmountComponentAtNode(this.props.avatar(), avatar)
+					document.body.removeChild(avatar);
+		    	}
 
-			this.setState({
-				drag : false 
-			})
+				this.setState({
+					drag : false 
+				})
 
-			if (this.props.onEnd)
-				this.props.onEnd(e, this.state.left, this.state.top)
+				if (this.props.onEnd)
+					this.props.onEnd(e, this.state.left, this.state.top, this.state.startX, this.state.startY)	 
+			}
 		},
 		mousedown : function(e){
 			if (e.button != 0) return;
 
+			if (this.props.onMouseDown){
+				this.props.onMouseDown(e)
+			}
+
+
+			dragComponent = true;
+    
+	    	var target = e.target;
+	    	var pageX = e.pageX;
+	    	var pageY = e.pageY;
+	    	
+	    	//console.log(target);
+
+	    	document.addEventListener('mouseup', this.mouseup);
+
+			window.setTimeout(function(){
+				var dndProgress;
+				if (this.props.onStart){
+					dndProgress = this.props.onStart(e)
+				}
+				if (dndProgress === false) return;
+
+				if (!dragComponent) return;
+				
+				this._mousedown({ target : target, pageX : pageX,  pageY : pageY})
+			
+			}.bind(this), this.props.delay);
+		},
+		_mousedown : function(e){
+			dndStart = true;
+
 			document.addEventListener('mousemove', this.moveAt);
-			document.addEventListener('mouseup', this.mouseup);
+			
 			addClass('drag', document.body);
 			
 			var coords = getCoords(e.target),
@@ -83,12 +126,7 @@ module.exports =  React.createClass({
 		        avatar.style.top = coords.top + 'px';
 		        avatar.style.zIndex = 99999;
 
-		        // avatar.style.width =  '200px';
-		        // avatar.style.height =  '200px';
-//		        avatar.innerHTML =  '<i class="glyphicon glyphicon-arrow-down"></>block';
-
 		       	React.renderComponent(this.props.avatar(), avatar);
-
 		        document.body.appendChild(avatar)
 	    	}
 			
@@ -101,11 +139,11 @@ module.exports =  React.createClass({
 	            top : coords.top - marginTop - (this.props.mode=="relative" ? parentCoords.top : 0),
 
 	            parentLeft : parentCoords.left,
-	            paretnTop : parentCoords.top
-			})
+	            paretnTop : parentCoords.top,
 
-			if (this.props.onStart)
-				this.props.onStart(e)
+	            startX : coords.left,
+    	        startY : coords.top
+			})
 		},
 		canDragY : function(){
 			return this.props.axis === 'y' || 
@@ -122,8 +160,7 @@ module.exports =  React.createClass({
 				display : drag && avatarMode ? 'none' : '',
 				position : drag && !avatarMode ? 'absolute' : '',
 				left : drag && this.canDragY() ? this.state.left : '',
-				top : drag && this.canDragX() ? this.state.top : '',
-				zIndex : 3000
+				top : drag && this.canDragX() ? this.state.top : ''
 			}
 			return React.addons.cloneWithProps(React.Children.only(this.props.children), {
 				onMouseDown : this.mousedown,

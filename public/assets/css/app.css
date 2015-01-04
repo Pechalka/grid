@@ -57,6 +57,7 @@
 	line-height: 80px;
 	margin: 5px;
 	background-color: #fff;
+	z-index: 9999;
 }
 
 .col-xs-1.hover,

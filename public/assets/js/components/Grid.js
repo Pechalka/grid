@@ -19,6 +19,8 @@ var Reflux = require('reflux');
 var actions = require('../actions');
 var stores = require('../stores');
 var getCoords = require('../utils').getCoords;
+var getSelectionText = require('../utils').getSelectionText;
+
 var cx = React.addons.classSet;
 var Draggable = require('../Draggable');
 
@@ -38,178 +40,38 @@ var ComponentIcon = React.createClass({
 
 		actions.hoverElement(el.id);
   	},
+  	dragStart : function(){  		
+  		actions.drag();
+  	},
   	render : function(){
-  		return <Draggable onEnd={this.dragEnd} onDrag={this.drag}>
+  		return <Draggable delay={1} onStart={this.dragStart} onEnd={this.dragEnd} onDrag={this.drag}>
   			<div className="componentIcon">{this.props.type}</div>
   		</Draggable>
   	}
 })
 
-var avatar = document.createElement("div");
-avatar.id = "avatar";
 
-
-function getSelectionText() {
-    var text = "";
-    if (window.getSelection) {
-        text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control") {
-        text = document.selection.createRange().text;
-    }
-    return text;
-}
-
-var dd = false,
-	w,
-	h
-;
-var Block = React.createClass({
-    getInitialState: function() {
-        return { 
-            shiftX : 25,
-            shiftY : 25,
-            dragging : false
+var ComponentToolBar = React.createClass({
+	align : function(value){
+    	var data = {
+        	row_id : this.props.row_id,
+        	col_id : this.props.col_id,
+        	id : this.props.id,
+        	style : { 'text-align' : value },
+        	align : value
         }
+    	actions.updateComponent(data);	
+    	return false;
     },
-    onmousedown : function(e){
-    	document.body.style.cursor = 'url(../build/img/closedhand.cur) 7 5, move';
-
-        var coords = getCoords(e.target);
-
-        this.setState({
-            shiftX : e.pageX - coords.left,
-            shiftY : e.pageY - coords.top ,
-            dragging : true,
-
-            startX : coords.left,
-            startY : coords.top,
-
-            left : coords.left,
-            top : coords.top
-        })
-        document.body.addEventListener('mousemove', this.moveAt);
-        document.body.addEventListener('mouseup', this.onmouseup); 
-        avatar.style.left = coords.left + 'px';
-        avatar.style.top = coords.top + 'px';
-        avatar.style.zIndex = 99999;
-
-      //  console.log(e.target.parentNode);
-
-        //i => div => component
-        avatar.style.width = w + 'px';
-        avatar.style.height = h + 'px';
-        avatar.innerHTML =  '<i class="glyphicon glyphicon-arrow-down"></>block';
-
-        document.body.appendChild(avatar)
-
-        actions.drag();
-
-    },
-    onmousedown2 : function(e){
-    	if (e.button != 0) return;
-
-    	actions.selectComponent(this.props.id);
-
-    
-    	var target = e.target;
-    	var pageX = e.pageX;
-    	var pageY = e.pageY;
-    	
-    	console.log(e.target);
-
-
-
-    	dd = true;
-    	w = target.parentNode.offsetWidth;
-    	h = target.parentNode.offsetHeight
-    	window.setTimeout(function(){
-    		var selectedText = getSelectionText();
-    		if (!!selectedText) dd = false;
-
-    		if (dd)
-    			this.onmousedown({ target : target, pageX : pageX,  pageY : pageY})
-    	}.bind(this), 500)
-    	
-    },
-    onMouseUp2 : function(){
-    	dd = false;
-    },
-    onmouseup : function(e){
-    	dd = false;
-    	document.body.style.cursor = '';
-
-    	document.body.removeChild(avatar);
-
-        document.body.removeEventListener('mousemove', this.moveAt);
-        document.body.removeEventListener('mouseup', this.onmouseup);
-
-    	console.log(this.state);
-
-		
-        	
-        
-
-    	this.setState({ 
-    		left : this.state.startX,
-    		top : this.state.startY,
-    		dragging : false 
-    	})
-
-		var cansel = (Math.abs(this.state.left - this.state.startX)<25 &&
- 			       	 Math.abs(this.state.top - this.state.startY) < 25)
-		if (!cansel)
-        	actions.drop(this.props);
-        else{
-        	stores.drag.set(false)
-        	stores.dragHoverElementId.set(null);
+    level : function(value){
+    	var delte = value == "level-reduce" ? -1 : 1;
+    	var data = {
+        	row_id : this.props.row_id,
+        	col_id : this.props.col_id,
+        	id : this.props.id,
+        	level : (this.props.level || 1) + delte
         }
-        	
-    },
-    moveAt : function(e){
-		
-	 	var x = e.pageX - this.state.shiftX ;
-	 	var y = e.pageY - this.state.shiftY;
-		
-		this.setState({
-			left : x,
-			top : y
-		})
-
-		//move avatar
-	  	avatar.style.left = x + 'px';
-        avatar.style.top = y +'px';
-	 	
-	 	var el = document.elementFromPoint(x - 1, y - 1);
-
-	   window.console.log(el);
-
-	   	if (!el) return;
-
-	   actions.hoverElement(el.id);
-
-    },
-    none : function(e){ return false; },
-    align : function(value){
-    	if (value == "level-reduce" || value == "level-increase"){
-	    	var delte = value == "level-reduce" ? -1 : 1;
-
-	    	var data = {
-	        	row_id : this.props.row_id,
-	        	col_id : this.props.col_id,
-	        	id : this.props.id,
-	        	level : (this.props.level || 1) + delte
-	        }
-	    	actions.updateComponent(data);	
-    	} else {
-	    	var data = {
-	        	row_id : this.props.row_id,
-	        	col_id : this.props.col_id,
-	        	id : this.props.id,
-	        	style : { 'text-align' : value },
-	        	align : value
-	        }
-	    	actions.updateComponent(data);	
-    	}
+    	actions.updateComponent(data);
     	return false;
     },
     effect : function(value){
@@ -222,6 +84,52 @@ var Block = React.createClass({
 	    actions.updateComponent(data);
 	    return false;	
     },
+	render: function() {
+		var level = this.props.level || 1;	    
+	    var size = this.props.componentClass === "Title" ? <div className="btn-group toolbar">
+		    	<button disabled={level <= 1  ? "disabled" : ""} onClick={this.level.bind(this, "level-reduce")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-plus"></span></button>
+		    	<button disabled={level >= 6 ? "disabled" : ""} onClick={this.level.bind(this, "level-increase")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-minus"></span></button>	
+		    </div> : null;
+
+	    var effect = this.props.effect || 'none';
+		var shape = this.props.componentClass === "Image" ? <DropdownButton bsSize="xsmall" title="shape">
+			          <MenuItem onSelect={this.effect.bind(this, "none")} eventKey="1" >none</MenuItem>
+			          <MenuItem  divider />
+			          <MenuItem onSelect={this.effect.bind(this, "circle")} eventKey="2" active="true" eventKey="2">circle</MenuItem>
+			          <MenuItem divider />
+			          <MenuItem onSelect={this.effect.bind(this, "rounded")}  eventKey="3">rounded</MenuItem>
+			          <MenuItem divider />
+			          <MenuItem onSelect={this.effect.bind(this, "thumbnail")}  eventKey="4">thumbnail</MenuItem>
+			        </DropdownButton> : null;
+
+
+	    var align = this.props.align || 'center';
+		var calculateBtnClass = function(v, a){
+		    return cx({
+		    	'active' : v == a ? 'active' : '',
+		    	'btn' : true,
+		    	'btn-default' : true,
+		    	'btn-xs' : true
+		    })	
+	    }
+		var direction = <div className="btn-group toolbar">
+					    <button onClick={this.align.bind(this, "left")} type="button" className={calculateBtnClass(align, 'left')}><span className="glyphicon glyphicon-align-left"></span></button>
+					    <button onClick={this.align.bind(this, "center")} type="button" className={calculateBtnClass(align, 'center')}><span className="glyphicon glyphicon-align-center"></span></button>
+					    <button onClick={this.align.bind(this, "right")} type="button" className={calculateBtnClass(align, 'right')}><span className="glyphicon glyphicon-align-right"></span></button>
+					    <button onClick={this.align.bind(this, "justify")} type="button" className={calculateBtnClass(align, 'justify')}><span className="glyphicon glyphicon-align-justify"></span></button>
+					</div>
+
+	    return <ButtonGroup>
+	        {direction}
+			{size}
+	        {shape}
+		</ButtonGroup>
+	}
+
+});
+
+
+var Block = React.createClass({
     remove : function(){
     	actions.removeComponent(this.props)
     	return false;
@@ -235,10 +143,10 @@ var Block = React.createClass({
 
     	return <div style={style} ><i className="glyphicon glyphicon-arrow-down"></i>block</div>;
     },
-    dragEnd : function(e, left, top){
-  		//actions.drop(this.props.type);
-  		var cansel = (Math.abs(left - this.state.startX)<25 &&
- 			       	 Math.abs(top - this.state.startY) < 25)
+    dragEnd : function(e, left, top, startX, startY){
+
+  		var cansel = (Math.abs(left - startX)<25 &&
+ 			       	 Math.abs(top - startY) < 25)
 		if (!cansel)
         	actions.drop(this.props);
         else{
@@ -251,12 +159,21 @@ var Block = React.createClass({
 
 	    if (!el) return;
 
-		//actions.hoverElement(el.id);
+		actions.hoverElement(el.id);
+  	},
+  	mouseDown : function(){
+  		actions.selectComponent(this.props.id);
+  	},
+  	dragStart : function(){
+  		var selectedText = getSelectionText();
+  		
+  		if (selectedText) return false;
+  		
+  		actions.drag();
   	},
     render : function(){
-    	var style = {
-	         display : this.state.dragging ? 'none' : 'block',// hide component, move block avatar
-	    }
+    	var style = {}
+
 	    if (this.props.componentClass === "Image" && (this.props.align == "left" || this.props.align == "right")){
 	    	style = {
 	    		float : this.props.align,
@@ -266,48 +183,7 @@ var Block = React.createClass({
 
 	    }
 
-	    var size = null;
-	    if (this.props.componentClass === "Title" ){
-	    	var level = this.props.level || 1;
-
-	    	size = [
-		    	<button disabled={level <= 1  ? "disabled" : ""} onClick={this.align.bind(this, "level-reduce")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-plus"></span></button>,
-		    	<button disabled={level >= 6 ? "disabled" : ""} onClick={this.align.bind(this, "level-increase")} type="button" className="btn btn-default btn-xs"><span className="glyphicon glyphicon-minus"></span></button>	
-		    ] 
-	    }  
-
-	    var self = this;
-	    var align = this.props.align || 'center';
-	    var effect = this.props.effect || 'none';
-	    var calculateBtnClass = function(v, a){
-		    return cx({
-		    	'active' : v == a ? 'active' : '',
-		    	'btn' : true,
-		    	'btn-default' : true,
-		    	'btn-xs' : true
-		    })	
-	    }
-	    
-		var shape = this.props.componentClass === "Image" ? <DropdownButton bsSize="xsmall" title="shape">
-			          <MenuItem onSelect={this.effect.bind(this, "none")} eventKey="1" >none</MenuItem>
-			          <MenuItem  divider />
-			          <MenuItem onSelect={this.effect.bind(this, "circle")} eventKey="2" active="true" eventKey="2">circle</MenuItem>
-			          <MenuItem divider />
-			          <MenuItem onSelect={this.effect.bind(this, "rounded")}  eventKey="3">rounded</MenuItem>
-			          <MenuItem divider />
-			          <MenuItem onSelect={this.effect.bind(this, "thumbnail")}  eventKey="4">thumbnail</MenuItem>
-			        </DropdownButton> : null;
-
-	    var toolbar = <ButtonGroup >
-			        <div className="btn-group toolbar">
-					    <button onClick={this.align.bind(this, "left")} type="button" className={calculateBtnClass(align, 'left')}><span className="glyphicon glyphicon-align-left"></span></button>
-					    <button onClick={this.align.bind(this, "center")} type="button" className={calculateBtnClass(align, 'center')}><span className="glyphicon glyphicon-align-center"></span></button>
-					    <button onClick={this.align.bind(this, "right")} type="button" className={calculateBtnClass(align, 'right')}><span className="glyphicon glyphicon-align-right"></span></button>
-					    <button onClick={this.align.bind(this, "justify")} type="button" className={calculateBtnClass(align, 'justify')}><span className="glyphicon glyphicon-align-justify"></span></button>
-						{size}
-					</div>
-			        {shape}
-			     </ButtonGroup>
+	    var toolbar = ComponentToolBar(this.props)
 			       
 		var removeBtn = <div onClick={this.remove} className="handler right">
             	<i className="glyphicon glyphicon-remove"></i>
@@ -315,13 +191,7 @@ var Block = React.createClass({
 		
 
 
-		// style={style}
-  //           className={this.props.css} 
-  //           onClick={this.blockClick} 
-  //           onMouseDown={this.onmousedown2} 
-  //           onMouseUp={this.onMouseUp2}
-
-    	return <Draggable avatar={this.renderAvatar}> 
+    	return <Draggable onMouseDown={this.mouseDown} onStart={this.dragStart} onDrag={this.drag} onEnd={this.dragEnd} avatar={this.renderAvatar}> 
     		<div 
 	    		style={style} 	
 	    		className={this.props.css} 
@@ -447,6 +317,7 @@ var getCelsWidth = function(rowNode){
 var rowNode;
 var Delemitor = React.createClass({
     onmousedown : function(e){
+    	actions.drag();
     	var target = e.target;
 
     	if (target && target){
@@ -454,6 +325,8 @@ var Delemitor = React.createClass({
 	    } 
     },
     onmouseup : function(e, newLeft){
+    	stores.drag.set(false)
+
     	if (newLeft){
 	        var data = {
 	        	cellIndex : this.props.index,
@@ -480,8 +353,9 @@ var Delemitor = React.createClass({
  		return <Draggable axis="y" 
 	 		mode="relative" 
 	 		onEnd={this.onmouseup}
-			onStart={this.onmousedown}>
- 			<div onDoubleClick={this.doubleClick} className="delemitor"></div>
+			onMouseDown={this.onmousedown}
+			delay={1} >
+ 			<div  onDoubleClick={this.doubleClick} className="delemitor"></div>
  		</Draggable>
  	}
 });

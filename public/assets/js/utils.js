@@ -138,6 +138,17 @@ function removeClass( classname, element ) {
     element.className = cn;
 }
 
+function getSelectionText() {
+    var text = "";
+    if (window.getSelection) {
+        text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+        text = document.selection.createRange().text;
+    }
+    return text;
+}
+
+
 module.exports = {
 	http : http,
 	CollectionStore : CollectionStore,
@@ -145,5 +156,6 @@ module.exports = {
 	guid : guid,
 	getCoords : getCoords,
 	addClass : addClass,
-	removeClass : removeClass
+	removeClass : removeClass,
+	getSelectionText : getSelectionText
 }
